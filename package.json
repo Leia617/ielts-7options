@@ -1,0 +1,36 @@
+{
+  "name": "@local/ielts-studio",
+  "version": "1.0.0",
+  "private": true,
+  "description": "雅思七选五出题器：按雅思难度和学生今日单词生成 5 空 7 选的阅读填空题，支持拍照识别单词与在线作答。",
+  "type": "module",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./client.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "docx.js",
+    "standalone.html",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "icon.svg",
+    "README.md"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-sidebar",
+        "@deepseek-ai/dsh-client-ui-layout"
+      ]
+    }
+  }
+}

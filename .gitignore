@@ -1,0 +1,5 @@
+.DS_Store
+node_modules/
+*.log
+.pnpm-store/
+.plugin-manager/

@@ -1,0 +1,9 @@
+{
+  "meta": {
+    "title": "IELTS Gap-Fill Studio",
+    "description": "Generate a five-gap, seven-option IELTS reading exercise from today's vocabulary, with photo word recognition, answer checking and explanations."
+  },
+  "panel": {
+    "label": "IELTS Studio"
+  }
+}

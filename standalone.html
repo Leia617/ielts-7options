@@ -1,0 +1,964 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>雅思七选五出题器 · IELTS Gap-Fill Studio</title>
+<style>
+  :root {
+    --bg: #f5f7fb;
+    --surface: #ffffff;
+    --surface-2: #f1f4fa;
+    --text: #111827;
+    --muted: #667085;
+    --border: #e4e7ec;
+    --border-strong: #cfd6e4;
+    --brand: #2f5fe0;
+    --brand-soft: #edf2ff;
+    --brand-ink: #1d3fae;
+    --success: #12805c;
+    --success-soft: #e9f8f1;
+    --danger: #b42318;
+    --danger-soft: #fef3f2;
+    --warn: #b54708;
+    --shadow: 0 1px 2px rgba(16, 24, 40, .05);
+    --radius: 16px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0e1117;
+      --surface: #161b25;
+      --surface-2: #1c2230;
+      --text: #eef2f8;
+      --muted: #9aa5b8;
+      --border: #293142;
+      --border-strong: #3a4559;
+      --brand: #7b9bff;
+      --brand-soft: #1a2440;
+      --brand-ink: #a9beff;
+      --success: #5fd3a5;
+      --success-soft: #122b22;
+      --danger: #ff8f86;
+      --danger-soft: #311817;
+      --warn: #f5b56b;
+      --shadow: 0 1px 2px rgba(0, 0, 0, .35);
+    }
+  }
+  * { box-sizing: border-box; }
+  html { background: var(--bg); }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  button, input, textarea { font: inherit; }
+  button { cursor: pointer; }
+  a { color: var(--brand); }
+  .shell { max-width: 1040px; margin: 0 auto; padding: 34px 32px 90px; }
+  .hero { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; }
+  .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .15em; color: var(--brand); text-transform: uppercase; }
+  h1 { font-size: 34px; line-height: 1.18; letter-spacing: -.025em; margin: 10px 0 8px; font-weight: 750; }
+  .sub { max-width: 700px; margin: 0; color: var(--muted); font-size: 14.5px; line-height: 1.75; }
+  .hero-side { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; padding-top: 4px; }
+  .badge { display: inline-flex; align-items: center; gap: 7px; padding: 6px 11px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface); color: var(--muted); font-size: 12px; white-space: nowrap; box-shadow: var(--shadow); }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--success); }
+  .dot.idle { background: var(--muted); }
+  .local { font-size: 10.5px; color: var(--muted); letter-spacing: .02em; }
+  .card { margin-top: 20px; padding: 22px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--surface); box-shadow: var(--shadow); }
+  .card + .card { margin-top: 14px; }
+  .card-head { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+  .card-head h2 { font-size: 15px; margin: 0; font-weight: 700; }
+  .step { font-size: 10.5px; font-weight: 800; letter-spacing: .08em; color: var(--brand); }
+  .hint { font-size: 12px; color: var(--muted); line-height: 1.6; }
+  .segmented { display: inline-flex; gap: 4px; padding: 4px; border-radius: 11px; background: var(--surface-2); }
+  .segmented button { border: 0; background: transparent; color: var(--muted); font-size: 13px; font-weight: 650; padding: 7px 15px; border-radius: 8px; }
+  .segmented button:hover { color: var(--text); }
+  .segmented button[aria-pressed="true"] { background: var(--surface); color: var(--text); box-shadow: inset 0 0 0 1px var(--border-strong); }
+  .grid { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(250px, .7fr); gap: 16px; align-items: stretch; }
+  .field { display: flex; flex-direction: column; min-width: 0; }
+  textarea, .input {
+    width: 100%;
+    border: 1px solid var(--border-strong);
+    border-radius: 10px;
+    background: var(--bg);
+    color: var(--text);
+    padding: 11px 13px;
+    font-size: 13.5px;
+    line-height: 1.65;
+    outline: none;
+    transition: border-color .15s, box-shadow .15s;
+  }
+  textarea { min-height: 150px; resize: vertical; }
+  textarea:focus, .input:focus { border-color: var(--brand); box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 16%, transparent); }
+  .field-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 7px; flex-wrap: wrap; }
+  .linkbtn { border: 0; background: transparent; color: var(--brand); font-size: 12px; font-weight: 650; padding: 0; }
+  .linkbtn:hover { text-decoration: underline; }
+  .drop {
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7px;
+    min-height: 182px; height: 100%; padding: 18px 16px; text-align: center;
+    border: 1.5px dashed var(--border-strong); border-radius: 12px; background: var(--bg);
+    transition: border-color .15s, background .15s;
+  }
+  .drop:hover, .drop.over { border-color: var(--brand); background: var(--brand-soft); }
+  .drop input[type="file"] { display: none; }
+  .drop-title { font-size: 13px; font-weight: 700; }
+  .drop-hint { font-size: 11.5px; line-height: 1.5; color: var(--muted); max-width: 210px; }
+  .ocr-count { font-size: 11.5px; font-weight: 650; color: var(--success); }
+  .spinner { width: 18px; height: 18px; border: 2px solid var(--border); border-top-color: var(--brand); border-radius: 50%; animation: spin .8s linear infinite; flex: none; }
+  .spinner.large { width: 30px; height: 30px; border-width: 2.5px; }
+  .spinner.small { width: 14px; height: 14px; border-width: 1.5px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .actions { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--border); flex-wrap: wrap; }
+  .summary { font-size: 12px; color: var(--muted); }
+  .primary {
+    border: 0; border-radius: 9px; background: var(--brand); color: #fff;
+    font-size: 13.5px; font-weight: 700; padding: 10px 20px;
+    display: inline-flex; align-items: center; gap: 8px;
+  }
+  .primary:hover { filter: brightness(1.06); }
+  .primary:disabled { opacity: .45; cursor: not-allowed; filter: none; }
+  .secondary {
+    border: 1px solid var(--border-strong); border-radius: 8px; background: transparent; color: var(--text);
+    font-size: 12.5px; font-weight: 650; padding: 7px 12px;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .secondary:hover { background: var(--surface-2); }
+  .secondary:disabled { opacity: .5; cursor: not-allowed; background: transparent; }
+  .ghost { border: 0; background: transparent; color: var(--muted); font-size: 12.5px; font-weight: 650; padding: 6px 3px; display: inline-flex; align-items: center; gap: 6px; }
+  .ghost:hover { color: var(--text); }
+  .error {
+    margin-top: 14px; padding: 11px 13px; border-radius: 9px;
+    border: 1px solid color-mix(in srgb, var(--danger) 36%, transparent);
+    background: var(--danger-soft); color: var(--danger); font-size: 12.5px; line-height: 1.6;
+  }
+  .error details { margin-top: 7px; color: var(--muted); }
+  .error pre { white-space: pre-wrap; word-break: break-word; max-height: 220px; overflow: auto; background: var(--surface-2); padding: 9px 10px; border-radius: 7px; font-size: 11px; }
+  .loading { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; padding: 58px 24px; margin-top: 24px; }
+  .loading h2 { font-size: 18px; margin: 4px 0 0; }
+  .loading p { margin: 0; max-width: 460px; color: var(--muted); font-size: 13px; line-height: 1.7; }
+  .toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin: 22px 0 14px; }
+  .toolbar .grow { flex: 1; }
+  .notice { color: var(--success); font-size: 12px; font-weight: 650; }
+  .meta { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 10px; }
+  .chip { padding: 4px 10px; border: 1px solid var(--border); border-radius: 999px; background: var(--surface-2); color: var(--muted); font-size: 11.5px; font-weight: 650; }
+  .section { margin-top: 22px; }
+  .section-head { display: flex; align-items: baseline; gap: 9px; margin-bottom: 10px; }
+  .section-head h2 { font-size: 15px; margin: 0; font-weight: 700; }
+  .section-head span { font-size: 11.5px; color: var(--muted); }
+  .instructions {
+    padding: 13px 15px; border: 1px solid var(--border); border-left: 3px solid var(--brand);
+    border-radius: 9px; background: var(--surface-2); color: var(--muted); font-size: 13px; line-height: 1.7;
+  }
+  .wordbox { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+  .option {
+    display: flex; align-items: center; gap: 9px; min-width: 0; padding: 9px 11px;
+    border: 1px solid var(--border); border-radius: 9px; background: var(--bg); color: var(--text);
+    text-align: left;
+  }
+  .option:hover { border-color: var(--border-strong); }
+  .option.used { border-color: color-mix(in srgb, var(--brand) 45%, var(--border)); background: var(--brand-soft); }
+  .option.answer { border-color: color-mix(in srgb, var(--success) 55%, var(--border)); background: var(--success-soft); }
+  .option.distractor { opacity: .6; border-style: dashed; }
+  .option:disabled { cursor: default; }
+  .letter { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; flex: none; border-radius: 6px; background: var(--surface-2); color: var(--brand); font-size: 11.5px; font-weight: 800; }
+  .word { font-size: 13.5px; font-weight: 650; min-width: 0; overflow-wrap: anywhere; }
+  .usedtag { margin-left: auto; font-size: 10px; font-weight: 650; color: var(--muted); white-space: nowrap; }
+  .passage {
+    font-family: ui-serif, Georgia, "Times New Roman", serif;
+    font-size: 17px; line-height: 1.95; letter-spacing: .005em;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 26px 30px;
+  }
+  .passage p { margin: 0 0 18px; }
+  .passage p:last-child { margin-bottom: 0; }
+  .blankwrap { display: inline-flex; align-items: baseline; gap: 5px; margin: 0 3px; border-bottom: 2px solid var(--brand); vertical-align: baseline; }
+  .blankwrap.correct { border-color: var(--success); }
+  .blankwrap.wrong { border-color: var(--danger); }
+  .blankwrap select { appearance: none; border: 0; background: transparent; color: var(--brand); font-family: inherit; font-size: 15px; font-weight: 800; width: 52px; text-align: center; padding: 1px 2px; outline: none; cursor: pointer; }
+  .blankwrap select option { background: var(--surface); color: var(--text); font-family: -apple-system, sans-serif; }
+  .mark { font-size: 11px; font-weight: 800; color: var(--success); white-space: nowrap; }
+  .mark.wrong { color: var(--danger); }
+  .submitrow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 14px; }
+  .result { display: flex; align-items: center; gap: 16px; padding: 15px 17px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface-2); margin-top: 18px; flex-wrap: wrap; }
+  .score { font-size: 24px; font-weight: 800; letter-spacing: -.02em; color: var(--brand); }
+  .result p { margin: 0; flex: 1; min-width: 220px; color: var(--muted); font-size: 13px; line-height: 1.6; }
+  .answer { padding: 12px 0; border-top: 1px solid var(--border); }
+  .answer:first-child { border-top: 0; padding-top: 0; }
+  .answer-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .answer-word { font-size: 13.5px; font-weight: 700; }
+  .answer p { margin: 5px 0 0; color: var(--muted); font-size: 12.5px; line-height: 1.75; }
+  .distractor { display: flex; gap: 8px; align-items: baseline; padding: 8px 0; border-top: 1px solid var(--border); font-size: 12.5px; line-height: 1.7; }
+  .distractor:first-child { border-top: 0; }
+  .distractor strong { font-weight: 700; }
+  .distractor span { color: var(--muted); }
+  .vocab { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 8px; }
+  .vocabitem { padding: 10px 12px; border: 1px solid var(--border); border-radius: 9px; background: var(--bg); }
+  .vocabitem strong { display: block; font-size: 13px; font-weight: 700; }
+  .vocabitem em { display: block; margin-top: 2px; font-size: 10.5px; font-style: normal; color: var(--muted); }
+  .vocabitem span { display: block; margin-top: 3px; font-size: 12px; color: var(--muted); }
+  pre.raw { white-space: pre-wrap; word-break: break-word; max-height: 180px; overflow: auto; background: var(--bg); border: 1px solid var(--border); padding: 9px 10px; border-radius: 8px; font-size: 11.5px; line-height: 1.55; color: var(--muted); margin: 8px 0 0; }
+  .page-note { margin-top: 30px; text-align: center; font-size: 11px; line-height: 1.7; color: var(--muted); }
+  @media (max-width: 860px) {
+    .shell { padding: 26px 22px 74px; }
+    .grid { grid-template-columns: 1fr; }
+    .drop { min-height: 150px; }
+    h1 { font-size: 27px; }
+    .hero { flex-direction: column; gap: 12px; }
+    .hero-side { align-items: flex-start; }
+    .wordbox { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  @media (max-width: 560px) {
+    .shell { padding: 20px 14px 64px; }
+    h1 { font-size: 23px; }
+    .card { padding: 17px 15px; }
+    .passage { padding: 18px 17px; font-size: 16px; }
+    .toolbar { gap: 6px; }
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="hero">
+    <div>
+      <div class="eyebrow">IELTS Reading · 七选五</div>
+      <h1>雅思七选五出题器</h1>
+      <p class="sub">输入学生今天学的单词，选择雅思难度，生成一篇约 500 词的阅读填空题。选项保持原形，答案字母随机打乱，空格均匀分布；支持拍照识别单词、在线作答和 PDF 导出。</p>
+    </div>
+    <div class="hero-side">
+      <div class="badge"><span class="dot idle" id="modelDot"></span><span id="modelName">模型就绪</span></div>
+      <div class="local">本机网页 · 生成与 PDF 依赖本地服务</div>
+    </div>
+  </header>
+  <main id="app"></main>
+  <div class="page-note">本题由 AI 生成，建议教师课前核对答案与解析。PDF 导出使用本机 LibreOffice，图片识别使用 macOS Vision。</div>
+</div>
+<script>
+(() => {
+  'use strict'
+
+  const app = document.getElementById('app')
+  const BANDS = ['5.0', '5.5', '6.0', '6.5', '7.0']
+  const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
+  const STORAGE_KEY = 'dsh.ielts-studio.standalone.v1'
+  const SAMPLE = 'sustainable\nurbanization\ninfrastructure\nresilient\nemission\nconservation\ninnovation\ninevitable\nallocate\ndeteriorate'
+
+  const blankState = {
+    band: '5.5',
+    wordsText: '',
+    topic: '',
+    exercise: null,
+    choices: {},
+    submitted: false,
+    showAnswers: false,
+    editing: true,
+    generating: false,
+    pdfBusy: null,
+    error: '',
+    errorDetail: null,
+    notice: '',
+    ocrBusy: false,
+    ocrCount: 0,
+    ocrLines: [],
+    activeBlank: 1,
+  }
+
+  function load() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY)
+      if (!raw) return {}
+      const value = JSON.parse(raw)
+      return value && typeof value === 'object' && !Array.isArray(value) ? value : {}
+    } catch {
+      return {}
+    }
+  }
+
+  const saved = load()
+  const state = {
+    ...blankState,
+    band: BANDS.includes(saved.band) ? saved.band : '5.5',
+    wordsText: typeof saved.wordsText === 'string' ? saved.wordsText : '',
+    topic: typeof saved.topic === 'string' ? saved.topic : '',
+    exercise: saved.exercise && Array.isArray(saved.exercise.answers) ? saved.exercise : null,
+    choices: saved.choices && typeof saved.choices === 'object' ? saved.choices : {},
+    submitted: Boolean(saved.submitted && saved.exercise),
+    showAnswers: Boolean(saved.showAnswers && saved.exercise),
+    editing: !saved.exercise,
+  }
+
+  let generationController = null
+  let noticeTimer = null
+
+  function save() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        band: state.band,
+        wordsText: state.wordsText,
+        topic: state.topic,
+        exercise: state.exercise,
+        choices: state.choices,
+        submitted: state.submitted,
+        showAnswers: state.showAnswers,
+        editing: state.editing,
+      }))
+    } catch {
+      /* storage can be unavailable or full */
+    }
+  }
+
+  function esc(value) {
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
+  }
+
+  function normalize(value) {
+    return String(value ?? '').replace(/\s+/g, ' ').trim()
+  }
+
+  function keyOf(value) {
+    return normalize(value).toLowerCase().replace(/[’]/g, "'")
+  }
+
+  function cleanWord(raw) {
+    let value = normalize(raw)
+    if (!value) return ''
+    value = value.replace(/^\s*(?:[-•*·]|\d{1,3}\s*[.)、:：])\s*/, '')
+    const match = value.match(/^[A-Za-z][A-Za-z'’-]*(?:\s+[A-Za-z][A-Za-z'’-]*){0,3}/)
+    return match ? match[0].trim() : ''
+  }
+
+  function parseWords(value) {
+    const source = Array.isArray(value) ? value : String(value ?? '').split(/[\n,;，；、|]+/)
+    const words = []
+    const seen = new Set()
+    for (const item of source) {
+      const word = cleanWord(item)
+      if (!word) continue
+      const key = keyOf(word)
+      if (seen.has(key)) continue
+      seen.add(key)
+      words.push(word)
+    }
+    return words
+  }
+
+  function mergeWords(left, right) {
+    const seen = new Set()
+    const merged = []
+    for (const word of [...left, ...right]) {
+      const key = keyOf(word)
+      if (!key || seen.has(key)) continue
+      seen.add(key)
+      merged.push(word)
+    }
+    return merged.slice(0, 50)
+  }
+
+  function setNotice(text) {
+    state.notice = text
+    save()
+    render()
+    if (noticeTimer) clearTimeout(noticeTimer)
+    noticeTimer = setTimeout(() => {
+      if (state.notice === text) {
+        state.notice = ''
+        render()
+      }
+    }, 2600)
+  }
+
+  function errorHtml() {
+    if (!state.error) return ''
+    const detail = state.errorDetail
+      ? `<details><summary>查看详细信息</summary><pre>${esc(typeof state.errorDetail === 'string' ? state.errorDetail : JSON.stringify(state.errorDetail, null, 2))}</pre></details>`
+      : ''
+    return `<div class="error" role="alert">${esc(state.error)}${detail}</div>`
+  }
+
+  function renderHeaderModel() {
+    const dot = document.getElementById('modelDot')
+    const name = document.getElementById('modelName')
+    if (!dot || !name) return
+    if (state.info && state.info.model) {
+      dot.classList.remove('idle')
+      name.textContent = state.info.model
+      const parent = name.closest('.badge')
+      if (parent) parent.title = `${state.info.provider || ''}/${state.info.model}`
+    } else {
+      dot.classList.add('idle')
+      name.textContent = '模型就绪'
+    }
+  }
+
+  function bandButtons() {
+    return BANDS.map(band => `<button type="button" data-band="${band}" aria-pressed="${band === state.band}">${band}</button>`).join('')
+  }
+
+  function setupHtml() {
+    const words = parseWords(state.wordsText)
+    const count = words.length
+    const dropInner = state.ocrBusy
+      ? `<div class="spinner"></div><div class="drop-title">正在识别图片…</div><div class="drop-hint">首次识别会在本机准备 OCR 组件，可能需要十几秒。</div>`
+      : `<div class="drop-title">拍照 / 上传单词表</div>
+         <div class="drop-hint">拖入、粘贴截图，或点击选择图片</div>
+         ${state.ocrCount > 0 ? `<div class="ocr-count">已识别 ${state.ocrCount} 个单词</div>` : ''}`
+    const preview = state.ocrLines.length
+      ? `<details style="margin-top:8px"><summary class="hint" style="cursor:pointer">查看识别原文</summary><pre class="raw">${esc(state.ocrLines.join('\n'))}</pre></details>`
+      : ''
+    const back = state.exercise
+      ? `<div style="margin-top:18px"><button class="ghost" type="button" data-back>← 返回上一题</button></div>`
+      : ''
+
+    return `${back}
+      <section class="card">
+        <div class="card-head"><span class="step">01</span><h2>选择雅思难度</h2><span class="hint">决定文章长度、句式和词汇难度</span></div>
+        <div class="segmented" role="group" aria-label="雅思难度">${bandButtons()}</div>
+      </section>
+      <section class="card">
+        <div class="card-head"><span class="step">02</span><h2>学生今日单词</h2><span class="hint">至少 5 个，最多 50 个</span></div>
+        <div class="grid">
+          <div class="field">
+            <textarea data-words spellcheck="false" placeholder="每行一个，或用逗号分隔。&#10;例如：&#10;sustainable, urbanization&#10;infrastructure, resilient&#10;emission, conservation">${esc(state.wordsText)}</textarea>
+            <div class="field-foot">
+              <span class="hint" id="wordCount">${count} 个单词</span>
+              <button class="linkbtn" type="button" data-sample>填入示例</button>
+            </div>
+          </div>
+          <div class="field">
+            <label class="drop" data-drop>
+              <input type="file" accept="image/*" data-file>
+              ${dropInner}
+            </label>
+            ${preview}
+          </div>
+        </div>
+      </section>
+      <section class="card">
+        <div class="card-head"><span class="step">03</span><h2>文章主题（可选）</h2></div>
+        <input class="input" data-topic maxlength="120" placeholder="例如：城市可持续发展 / 人工智能与教育 / 远程办公" value="${esc(state.topic)}">
+      </section>
+      ${errorHtml()}
+      <div class="actions">
+        <div class="summary">${count} 个单词 · 5 个空格 · 7 个选项 · 约 500 词</div>
+        <button class="primary" type="button" data-generate ${count < 5 || count > 50 ? 'disabled' : ''}>生成题目</button>
+      </div>`
+  }
+
+  function loadingHtml() {
+    return `<section class="card loading">
+      <div class="spinner large"></div>
+      <h2>正在生成题目…</h2>
+      <p>${esc(state.band)} · 5 gaps · 7 options · ~500 words</p>
+      <p>通常需要 30–90 秒；生成时会校验空格分布、选项数量和答案字母。</p>
+      <button class="secondary" type="button" data-cancel>取消</button>
+    </section>`
+  }
+
+  function blankHtml(number) {
+    const exercise = state.exercise
+    const chosen = state.choices[number] || ''
+    const answer = exercise.answers.find(item => item.blank === number)
+    const correct = state.submitted && answer && chosen === answer.letter
+    const wrong = state.submitted && answer && chosen !== answer.letter
+    const options = ['<option value="">___</option>']
+      .concat(LETTERS.map(letter => `<option value="${letter}" ${chosen === letter ? 'selected' : ''}>${letter}</option>`))
+      .join('')
+    const mark = state.submitted && answer
+      ? `<span class="mark ${correct ? '' : 'wrong'}">${correct ? '✓' : `✗ ${esc(answer.letter)}`}</span>`
+      : ''
+    return `<span class="blankwrap ${correct ? 'correct' : ''} ${wrong ? 'wrong' : ''}"><select data-blank="${number}" aria-label="第 ${number} 空" ${state.submitted ? 'disabled' : ''}>${options}</select>${mark}</span>`
+  }
+
+  function passageHtml(exercise) {
+    return String(exercise.passage || '')
+      .split(/\n\s*\n/)
+      .map(block => block.trim())
+      .filter(Boolean)
+      .map(block => {
+        const normalized = block.replace(/\s*\[\[(\d+)\]\]\s*/g, ' [[$1]] ').trim()
+        const html = esc(normalized).replace(/\[\[(\d+)\]\]/g, (_, number) => blankHtml(Number(number)))
+        return `<p>${html}</p>`
+      })
+      .join('')
+  }
+
+  function optionHtml(exercise) {
+    const used = {}
+    for (const [blank, letter] of Object.entries(state.choices)) {
+      if (!letter) continue
+      if (!used[letter]) used[letter] = []
+      used[letter].push(Number(blank))
+    }
+    const answerLetters = new Set(exercise.answers.map(item => item.letter))
+    const distractorLetters = new Set(exercise.distractors.map(item => item.letter))
+    return exercise.options.map(option => {
+      const usedOn = used[option.letter] || []
+      const isAnswer = state.submitted && answerLetters.has(option.letter)
+      const isDistractor = state.submitted && distractorLetters.has(option.letter)
+      return `<button type="button" class="option ${usedOn.length ? 'used' : ''} ${isAnswer ? 'answer' : ''} ${isDistractor ? 'distractor' : ''}" data-option="${esc(option.letter)}" ${state.submitted ? 'disabled' : ''} aria-pressed="${usedOn.length > 0}">
+        <span class="letter">${esc(option.letter)}</span>
+        <span class="word">${esc(option.word)}</span>
+        ${usedOn.length ? `<span class="usedtag">已用 ${usedOn.join(', ')}</span>` : ''}
+      </button>`
+    }).join('')
+  }
+
+  function answerPanelHtml(exercise) {
+    if (!state.showAnswers) return ''
+    const answers = exercise.answers.map(answer => {
+      const chosen = state.choices[answer.blank]
+      const status = state.submitted
+        ? `<span class="hint">${chosen === answer.letter ? '✓ 正确' : `应为 ${esc(answer.letter)}`}</span>`
+        : ''
+      return `<div class="answer">
+        <div class="answer-head"><span class="letter">${esc(answer.letter)}</span><span class="answer-word">${answer.blank}. ${esc(answer.word)}</span>${status}</div>
+        <p>${esc(answer.explanation || '符合上下文语境。')}</p>
+      </div>`
+    }).join('')
+    const distractors = exercise.distractors.map(item => `<div class="distractor"><span class="letter">${esc(item.letter)}</span><div><strong>${esc(item.word)}</strong><span> — ${esc(item.why || '')}</span></div></div>`).join('')
+    const vocab = exercise.vocabulary && exercise.vocabulary.length
+      ? `<div class="vocab">${exercise.vocabulary.map(item => `<div class="vocabitem"><strong>${esc(item.word)}</strong>${item.form ? `<em>${esc(item.form)}</em>` : ''}${item.meaning ? `<span>${esc(item.meaning)}</span>` : ''}</div>`).join('')}</div>`
+      : ''
+    return `<div class="section"><div class="section-head"><h2>答案与解析</h2></div>${answers}</div>
+      <div class="section"><div class="section-head"><h2>干扰项</h2></div>${distractors}</div>
+      ${vocab ? `<div class="section"><div class="section-head"><h2>重点词汇</h2></div>${vocab}</div>` : ''}`
+  }
+
+  function exerciseHtml() {
+    const exercise = state.exercise
+    const answered = exercise.answers.every(answer => Boolean(state.choices[answer.blank]))
+    const correct = exercise.answers.filter(answer => state.choices[answer.blank] === answer.letter).length
+    const perfect = correct === exercise.answers.length
+    const message = perfect ? '全对！空格和词义都掌握得很好。' : correct >= 3 ? '不错，再看一下错题的上下文线索。' : '建议先通读全文，再根据语法和语义排除干扰项。'
+    const result = state.submitted
+      ? `<div class="result"><div class="score">${correct}/${exercise.answers.length}</div><p>答对 ${correct} / ${exercise.answers.length} · ${message}</p><button class="secondary" type="button" data-toggle-answers>${state.showAnswers ? '隐藏答案解析' : '显示答案解析'}</button></div>`
+      : ''
+    const submit = state.submitted
+      ? `<button class="secondary" type="button" data-redo>重做</button>`
+      : `<button class="primary" type="button" data-submit ${answered ? '' : 'disabled'}>提交答案</button>${answered ? '' : '<span class="hint">还有空格未填写</span>'}`
+    const pdfExercise = state.pdfBusy === 'exercise'
+    const pdfAnswers = state.pdfBusy === 'answers'
+    return `<div class="toolbar">
+      <button class="ghost" type="button" data-back>← 修改设置</button>
+      <button class="secondary" type="button" data-regenerate>换一篇</button>
+      <button class="secondary" type="button" data-copy>复制题目</button>
+      <button class="secondary" type="button" data-copy-answers>复制答案</button>
+      <button class="secondary" type="button" data-pdf="exercise" ${state.pdfBusy ? 'disabled' : ''}>${pdfExercise ? '<span class="spinner small"></span>题目 PDF 生成中…' : '题目 PDF'}</button>
+      <button class="secondary" type="button" data-pdf="answers" ${state.pdfBusy ? 'disabled' : ''}>${pdfAnswers ? '<span class="spinner small"></span>答案 PDF 生成中…' : '答案 PDF'}</button>
+      <span class="grow"></span>
+      ${state.notice ? `<span class="notice">${esc(state.notice)}</span>` : ''}
+    </div>
+    <h2 style="font-size:26px;line-height:1.25;letter-spacing:-.02em;margin:0 0 8px;font-weight:750">${esc(exercise.title)}</h2>
+    <div class="meta"><span class="chip">IELTS ${esc(exercise.band)}</span><span class="chip">${esc(exercise.wordCount)} words</span><span class="chip">5 gaps</span><span class="chip">7 options</span></div>
+    ${errorHtml()}
+    <div class="section"><div class="instructions"><strong style="color:var(--text)">作答说明 · </strong>从 A–G 中为每个空格选择最合适的单词。每个选项最多使用一次；填写时不需要改变单词形式。可以先点空格，再点选项。</div></div>
+    <div class="section"><div class="section-head"><h2>Word Box</h2><span>点击选项填入当前空格</span></div><div class="wordbox">${optionHtml(exercise)}</div></div>
+    <div class="section"><div class="section-head"><h2>Reading Passage</h2></div><div class="passage">${passageHtml(exercise)}</div></div>
+    <div class="submitrow">${submit}</div>
+    ${result}
+    ${answerPanelHtml(exercise)}`
+  }
+
+  function render() {
+    if (state.generating) {
+      app.innerHTML = loadingHtml()
+      return
+    }
+    if (!state.exercise || state.editing) {
+      app.innerHTML = setupHtml()
+      return
+    }
+    app.innerHTML = exerciseHtml()
+  }
+
+  function updateCount() {
+    const count = parseWords(state.wordsText).length
+    const node = document.getElementById('wordCount')
+    if (node) node.textContent = `${count} 个单词`
+    const summary = document.querySelector('.actions .summary')
+    if (summary) summary.textContent = `${count} 个单词 · 5 个空格 · 7 个选项 · 约 500 词`
+    const generate = document.querySelector('[data-generate]')
+    if (generate) generate.disabled = count < 5 || count > 50
+  }
+
+  async function handleFile(file) {
+    if (!file) return
+    if (!String(file.type || '').startsWith('image/')) {
+      state.error = '请选择图片文件（PNG、JPG、WebP、GIF）。'
+      state.errorDetail = null
+      render()
+      return
+    }
+    if (file.size > 20 * 1024 * 1024) {
+      state.error = '图片不能超过 20 MB。'
+      state.errorDetail = null
+      render()
+      return
+    }
+    state.ocrBusy = true
+    state.error = ''
+    state.errorDetail = null
+    state.ocrCount = 0
+    state.ocrLines = []
+    render()
+    try {
+      const dataUrl = await readAsDataUrl(file)
+      const response = await fetch('/x-ielts-studio/ocr', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', accept: 'application/json' },
+        body: JSON.stringify({ dataUrl }),
+      })
+      const data = await response.json().catch(() => null)
+      if (!response.ok || !data || !data.ok) {
+        const failure = new Error((data && data.error && data.error.message) || '图片识别失败，请换一张更清晰的图片。')
+        failure.detail = data && data.error ? data.error.detail : null
+        throw failure
+      }
+      const candidates = (Array.isArray(data.words) ? data.words : []).filter(word => !/^(?:unit|lesson|module)\s*\d+|vocabulary|word\s*list|new\s*words|name\s*[:\uff1a]|date\s*[:\uff1a]/i.test(word))
+      const found = parseWords(candidates)
+      state.ocrLines = Array.isArray(data.lines) ? data.lines : []
+      state.ocrCount = found.length
+      if (!found.length) throw new Error('没有识别到单词，请换一张更清晰的图片。')
+      state.wordsText = mergeWords(parseWords(state.wordsText), found).join('\n')
+      save()
+    } catch (error) {
+      state.error = error.message || '图片识别失败，请手动输入单词。'
+      state.errorDetail = error.detail || null
+    } finally {
+      state.ocrBusy = false
+      render()
+    }
+  }
+
+  function readAsDataUrl(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(String(reader.result || ''))
+      reader.onerror = () => reject(new Error('图片读取失败'))
+      reader.readAsDataURL(file)
+    })
+  }
+
+  async function generate() {
+    const words = parseWords(state.wordsText)
+    if (words.length < 5) {
+      state.error = '请至少输入 5 个有效英文单词。'
+      state.errorDetail = null
+      render()
+      return
+    }
+    if (words.length > 50) {
+      state.error = '一次最多支持 50 个单词，请删除一些。'
+      state.errorDetail = null
+      render()
+      return
+    }
+    state.generating = true
+    state.error = ''
+    state.errorDetail = null
+    state.notice = ''
+    render()
+    generationController = new AbortController()
+    try {
+      const response = await fetch('/x-ielts-studio/generate', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', accept: 'application/json' },
+        body: JSON.stringify({ band: state.band, words, topic: state.topic }),
+        signal: generationController.signal,
+      })
+      const data = await response.json().catch(() => null)
+      if (!response.ok || !data || !data.ok) {
+        const failure = new Error((data && data.error && data.error.message) || '生成失败，请稍后重试。')
+        failure.detail = data && data.error ? data.error.detail : null
+        throw failure
+      }
+      state.exercise = data.exercise
+      state.choices = {}
+      state.submitted = false
+      state.showAnswers = false
+      state.editing = false
+      state.activeBlank = 1
+      save()
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    } catch (error) {
+      if (error && error.name === 'AbortError') {
+        state.error = '已取消本次生成。'
+      } else {
+        state.error = (error && error.message) || '生成失败，请稍后重试。'
+        state.errorDetail = error ? error.detail : null
+      }
+    } finally {
+      generationController = null
+      state.generating = false
+      render()
+    }
+  }
+
+  function nextBlank(blank) {
+    const blanks = state.exercise.answers.map(answer => answer.blank).sort((a, b) => a - b)
+    const index = blanks.indexOf(blank)
+    return blanks[(index + 1) % blanks.length]
+  }
+
+  function setChoice(blank, letter) {
+    if (letter) {
+      for (const [key, value] of Object.entries(state.choices)) {
+        if (value === letter && Number(key) !== blank) delete state.choices[key]
+      }
+      state.choices[blank] = letter
+    } else {
+      delete state.choices[blank]
+    }
+    state.activeBlank = nextBlank(blank)
+    save()
+    render()
+  }
+
+  function chooseOption(letter) {
+    if (state.submitted) return
+    const blanks = state.exercise.answers.map(answer => answer.blank).sort((a, b) => a - b)
+    const target = !state.choices[state.activeBlank]
+      ? state.activeBlank
+      : (blanks.find(blank => !state.choices[blank]) || state.activeBlank)
+    setChoice(target, letter)
+  }
+
+  function buildText(exercise, includeAnswers) {
+    const box = exercise.options.map(option => `${option.letter}. ${option.word}`).join('    ')
+    const body = exercise.passage.replace(/\[\[(\d+)\]\]/g, (_, number) => `_____(${number})`)
+    const header = `${exercise.title}\nIELTS ${exercise.band} · ${exercise.wordCount} words · 5 gaps / 7 options\n\nWord Box\n${box}\n\n${body}\n`
+    if (!includeAnswers) {
+      return `${header}\nInstructions: Choose one word from the box for each gap and write its letter. Each option may be used once. Do not change the form of any word.\n`
+    }
+    const answers = exercise.answers.map(answer => `${answer.blank}. ${answer.letter}  ${answer.word}\n   ${answer.explanation || ''}`).join('\n')
+    const distractors = exercise.distractors.map(item => `${item.letter}. ${item.word} — ${item.why || ''}`).join('\n')
+    return `${header}\nAnswers\n${answers}\n\nDistractors\n${distractors}\n`
+  }
+
+  async function copyText(text, label) {
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text)
+      } else {
+        const area = document.createElement('textarea')
+        area.value = text
+        area.style.position = 'fixed'
+        area.style.opacity = '0'
+        document.body.appendChild(area)
+        area.select()
+        document.execCommand('copy')
+        area.remove()
+      }
+      setNotice(label)
+    } catch {
+      state.error = '复制失败，请手动选择文本。'
+      state.errorDetail = null
+      render()
+    }
+  }
+
+  async function downloadPdf(includeAnswers) {
+    if (!state.exercise || state.pdfBusy) return
+    state.pdfBusy = includeAnswers ? 'answers' : 'exercise'
+    state.error = ''
+    state.errorDetail = null
+    render()
+    try {
+      const response = await fetch('/x-ielts-studio/pdf', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', accept: 'application/pdf' },
+        body: JSON.stringify({ exercise: state.exercise, includeAnswers }),
+      })
+      const contentType = String(response.headers.get('content-type') || '')
+      if (!response.ok || !contentType.includes('application/pdf')) {
+        let data = null
+        try { data = await response.json() } catch { data = null }
+        const failure = new Error((data && data.error && data.error.message) || 'PDF 导出失败，请稍后重试。')
+        failure.detail = data && data.error ? data.error.detail : null
+        throw failure
+      }
+      const blob = await response.blob()
+      if (!blob.size) throw new Error('PDF 导出失败，请稍后重试。')
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `ielts-five-gaps-${state.exercise.band}-${includeAnswers ? 'answers' : 'exercise'}.pdf`
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      setTimeout(() => URL.revokeObjectURL(url), 1000)
+      setNotice('PDF 已开始下载')
+    } catch (error) {
+      state.error = (error && error.message) || 'PDF 导出失败，请稍后重试。'
+      state.errorDetail = error ? error.detail : null
+      render()
+    } finally {
+      state.pdfBusy = null
+      render()
+    }
+  }
+
+  app.addEventListener('click', async event => {
+    const target = event.target.closest('[data-band],[data-generate],[data-sample],[data-cancel],[data-back],[data-regenerate],[data-copy],[data-copy-answers],[data-pdf],[data-submit],[data-redo],[data-toggle-answers],[data-option]')
+    if (!target) return
+    if (target.hasAttribute('data-band')) {
+      state.band = target.getAttribute('data-band')
+      save()
+      render()
+      return
+    }
+    if (target.hasAttribute('data-generate')) {
+      generate()
+      return
+    }
+    if (target.hasAttribute('data-sample')) {
+      state.wordsText = SAMPLE
+      save()
+      render()
+      return
+    }
+    if (target.hasAttribute('data-cancel')) {
+      if (generationController) generationController.abort()
+      return
+    }
+    if (target.hasAttribute('data-back')) {
+      state.editing = true
+      save()
+      render()
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+      return
+    }
+    if (target.hasAttribute('data-regenerate')) {
+      generate()
+      return
+    }
+    if (target.hasAttribute('data-copy')) {
+      copyText(buildText(state.exercise, false), '已复制题目到剪贴板')
+      return
+    }
+    if (target.hasAttribute('data-copy-answers')) {
+      copyText(buildText(state.exercise, true), '已复制答案到剪贴板')
+      return
+    }
+    if (target.hasAttribute('data-pdf')) {
+      downloadPdf(target.getAttribute('data-pdf') === 'answers')
+      return
+    }
+    if (target.hasAttribute('data-submit')) {
+      if (state.exercise.answers.every(answer => state.choices[answer.blank])) {
+        state.submitted = true
+        state.showAnswers = true
+        save()
+        render()
+      }
+      return
+    }
+    if (target.hasAttribute('data-redo')) {
+      state.choices = {}
+      state.submitted = false
+      state.showAnswers = false
+      state.activeBlank = 1
+      save()
+      render()
+      return
+    }
+    if (target.hasAttribute('data-toggle-answers')) {
+      state.showAnswers = !state.showAnswers
+      save()
+      render()
+      return
+    }
+    if (target.hasAttribute('data-option')) {
+      chooseOption(target.getAttribute('data-option'))
+    }
+  })
+
+  app.addEventListener('change', event => {
+    const select = event.target.closest('select[data-blank]')
+    if (select) {
+      const blank = Number(select.getAttribute('data-blank'))
+      const letter = select.value
+      if (letter) setChoice(blank, letter)
+      else {
+        delete state.choices[blank]
+        save()
+        render()
+      }
+      return
+    }
+    const fileInput = event.target.closest('input[data-file]')
+    if (fileInput && fileInput.files && fileInput.files[0]) {
+      const file = fileInput.files[0]
+      fileInput.value = ''
+      handleFile(file)
+    }
+  })
+
+  app.addEventListener('input', event => {
+    if (event.target.matches('textarea[data-words]')) {
+      state.wordsText = event.target.value
+      save()
+      updateCount()
+      return
+    }
+    if (event.target.matches('input[data-topic]')) {
+      state.topic = event.target.value
+      save()
+    }
+  })
+
+  app.addEventListener('dragover', event => {
+    if (event.target.closest('[data-drop]')) {
+      event.preventDefault()
+      const drop = event.target.closest('[data-drop]')
+      if (drop) drop.classList.add('over')
+    }
+  })
+
+  app.addEventListener('dragleave', event => {
+    const drop = event.target.closest('[data-drop]')
+    if (drop) drop.classList.remove('over')
+  })
+
+  app.addEventListener('drop', event => {
+    const drop = event.target.closest('[data-drop]')
+    if (!drop) return
+    event.preventDefault()
+    drop.classList.remove('over')
+    const file = event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0]
+    if (file) handleFile(file)
+  })
+
+  app.addEventListener('paste', event => {
+    const drop = event.target.closest('[data-drop]')
+    if (!drop || !event.clipboardData) return
+    for (const item of event.clipboardData.items) {
+      if (item.kind === 'file' && String(item.type || '').startsWith('image/')) {
+        event.preventDefault()
+        const file = item.getAsFile()
+        if (file) handleFile(file)
+        return
+      }
+    }
+  })
+
+  fetch('/x-ielts-studio/info', { headers: { accept: 'application/json' } })
+    .then(response => response.json())
+    .then(data => {
+      if (data && data.ok) {
+        state.info = data
+        renderHeaderModel()
+      }
+    })
+    .catch(() => {})
+
+  render()
+})()
+</script>
+</body>
+</html>
