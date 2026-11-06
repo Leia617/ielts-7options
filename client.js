@@ -7,7 +7,7 @@ window.__ModuleLoader__.load({
 
     const NS = 'ielts-studio'
     const STORAGE_KEY = 'dsh.ielts-studio.v1'
-    const BANDS = ['5.0', '5.5', '6.0', '6.5', '7.0']
+    const BANDS = ['4.0', '4.5', '5.0', '5.5', '6.0', '6.5', '7.0']
     const LETTERS = ['A', 'B', 'C', 'D', 'E', 'F', 'G']
 
     const zh = {
@@ -44,6 +44,7 @@ window.__ModuleLoader__.load({
       'setup.backToExercise': '返回上一题',
       'loading.title': '正在生成题目…',
       'loading.hint': '通常需要 30–90 秒。生成时会校验空格分布、选项数量和答案字母。',
+      'loading.elapsed': '已等待 {n} 秒…',
       'loading.cancel': '取消',
       'error.title': '出了点问题',
       'error.details': '查看详细信息',
@@ -127,6 +128,7 @@ window.__ModuleLoader__.load({
       'setup.backToExercise': 'Back to the exercise',
       'loading.title': 'Writing your exercise…',
       'loading.hint': 'This usually takes 30–90 seconds. The result is checked for gap spacing, option count and shuffled answer letters.',
+      'loading.elapsed': 'Elapsed {n}s…',
       'loading.cancel': 'Cancel',
       'error.title': 'Something went wrong',
       'error.details': 'Show details',
@@ -201,7 +203,7 @@ window.__ModuleLoader__.load({
 .ieltsx-step{font-size:10.5px;font-weight:700;letter-spacing:.08em;color:var(--dsw-alias-brand-primary);}
 .ieltsx-card-head h2{font-size:15px;font-weight:650;margin:0;}
 .ieltsx-hint{font-size:12px;color:var(--dsw-alias-label-secondary);}
-.ieltsx-segmented{display:inline-flex;gap:4px;padding:4px;border-radius:11px;background:var(--dsw-alias-bg-layer-2);}
+.ieltsx-segmented{display:inline-flex;flex-wrap:wrap;gap:4px;padding:4px;border-radius:11px;background:var(--dsw-alias-bg-layer-2);}
 .ieltsx-segmented button{appearance:none;border:0;background:transparent;color:var(--dsw-alias-label-secondary);font:inherit;font-size:13px;font-weight:600;padding:7px 15px;border-radius:8px;cursor:pointer;transition:background .15s,color .15s,box-shadow .15s;}
 .ieltsx-segmented button:hover{color:var(--dsw-alias-label-primary);}
 .ieltsx-segmented button[aria-pressed="true"]{background:var(--dsw-alias-bg-layer-1);color:var(--dsw-alias-label-primary);box-shadow:inset 0 0 0 1px var(--dsw-alias-border-l2);}
@@ -242,6 +244,7 @@ window.__ModuleLoader__.load({
 .ieltsx-success{margin-top:14px;padding:11px 13px;border:1px solid color-mix(in srgb,var(--dsw-alias-state-success-primary) 35%,transparent);border-radius:9px;background:color-mix(in srgb,var(--dsw-alias-state-success-primary) 8%,transparent);color:var(--dsw-alias-state-success-primary);font-size:12.5px;}
 .ieltsx-loading{display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;padding:56px 24px;margin-top:24px;}
 .ieltsx-loading h2{font-size:18px;font-weight:650;margin:4px 0 0;}
+.ieltsx-loading .ieltsx-elapsed{font-size:14px;font-weight:650;color:var(--dsw-alias-brand-primary);font-variant-numeric:tabular-nums;}
 .ieltsx-loading p{margin:0;font-size:13px;line-height:1.7;color:var(--dsw-alias-label-secondary);max-width:460px;}
 .ieltsx-loading .ieltsx-secondary{margin-top:10px;}
 .ieltsx-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:22px 0 14px;}
@@ -498,6 +501,7 @@ window.__ModuleLoader__.load({
       const [showAnswers, setShowAnswers] = useState(Boolean(saved.showAnswers && saved.exercise))
       const [editing, setEditing] = useState(!saved.exercise)
       const [generating, setGenerating] = useState(false)
+      const [elapsed, setElapsed] = useState(0)
       const [error, setError] = useState('')
       const [errorDetail, setErrorDetail] = useState(null)
       const [notice, setNotice] = useState('')
@@ -544,6 +548,16 @@ window.__ModuleLoader__.load({
         const timer = window.setTimeout(() => setNotice(''), 2400)
         return () => window.clearTimeout(timer)
       }, [notice])
+
+      useEffect(() => {
+        if (!generating) {
+          setElapsed(0)
+          return undefined
+        }
+        setElapsed(0)
+        const timer = window.setInterval(() => setElapsed(value => value + 1), 1000)
+        return () => window.clearInterval(timer)
+      }, [generating])
 
       useEffect(() => {
         let alive = true
@@ -816,6 +830,7 @@ window.__ModuleLoader__.load({
             h('section', { className: 'ieltsx-card ieltsx-loading' },
               h('div', { className: 'ieltsx-spinner large' }),
               h('h2', null, t('loading.title')),
+              h('p', { className: 'ieltsx-elapsed' }, t('loading.elapsed', { n: elapsed })),
               h('p', null, `${band} · 5 gaps · 7 options · ~500 words`),
               h('p', null, t('loading.hint')),
               h('button', { type: 'button', className: 'ieltsx-secondary', onClick: cancel }, t('loading.cancel'))),

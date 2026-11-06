@@ -17,12 +17,14 @@ const BLANKS = 5
 const OPTIONS = 7
 const MAX_WORDS = 50
 const MAX_IMAGE_BYTES = 20 * 1024 * 1024
+const GENERATE_TIMEOUT_MS = 180_000
 const OCR_CACHE_DIR = path.join(tmpdir(), 'dsh-ielts-studio')
 const OCR_BINARY = path.join(OCR_CACHE_DIR, 'vision-ocr-v1')
 const OCR_SOURCE = path.join(OCR_CACHE_DIR, 'vision-ocr-v1.swift')
 const OCR_MODULE_CACHE = path.join(OCR_CACHE_DIR, 'module-cache')
 
 const BAND_GUIDE = {
+  '4.0': 'CEFR A2+/B1. Short, simple sentences and very common everyday words; clear, explicit paragraph structure with limited complex grammar.',
   '4.5': 'CEFR B1. Mostly simple and compound sentences, common everyday and academic words, explicit paragraph topics.',
   '5.0': 'CEFR B1+. Clear paragraph structure, some complex sentences, common academic vocabulary, explicit cohesive devices.',
   '5.5': 'CEFR B2. Clear academic prose, a mix of simple and complex sentences, some less common vocabulary, mostly explicit cohesion.',
@@ -761,6 +763,11 @@ export function apply(ctx, config = {}) {
     const reasoningEffort = settings.reasoningEffort === undefined ? selection.reasoningEffort : settings.reasoningEffort
 
     const controller = new AbortController()
+    let timedOut = false
+    const timeout = setTimeout(() => {
+      timedOut = true
+      controller.abort()
+    }, GENERATE_TIMEOUT_MS)
     const onClose = () => {
       if (!res.writableEnded) controller.abort()
     }
@@ -788,8 +795,12 @@ export function apply(ctx, config = {}) {
             else if (chunk.type === 'finish') finish = chunk.reason
           }
         } catch (error) {
+          if (timedOut) throw new StudioError('TIMEOUT', '生成超时（180 秒）。请把模型换成 flash 档，或稍后重试。', 504)
           if (controller.signal.aborted) throw new StudioError('ABORTED', '请求已取消。', 499)
           throw new StudioError('LLM_ERROR', `模型调用失败：${error?.message || '未知错误'}`, 502)
+        }
+        if (timedOut) {
+          throw new StudioError('TIMEOUT', '生成超时（180 秒）。请把模型换成 flash 档，或稍后重试。', 504)
         }
         if (finish?.kind === 'error' || finish?.kind === 'aborted') {
           throw mapLlmFailure(finish.failure)
@@ -830,6 +841,7 @@ export function apply(ctx, config = {}) {
         raw: lastRaw.slice(0, 4000),
       })
     } finally {
+      clearTimeout(timeout)
       activeGenerations -= 1
       res.off('close', onClose)
     }

@@ -5,7 +5,7 @@ exercise with **five gaps and seven options**.
 
 ## What it does
 
-- Choose an IELTS band from 5.0 to 7.0.
+- Choose an IELTS band from 4.0 to 7.0.
 - Paste a student word list, or drop / paste a photo of a word list. A local macOS
   Vision OCR helper extracts candidates for review before generating.
 - Generates a roughly 500-word passage with five evenly spaced gaps, a seven-word box,
