@@ -1,0 +1,20 @@
+{
+  "name": "ielts-7options-market",
+  "interface": {
+    "displayName": "IELTS 7 Options"
+  },
+  "plugins": [
+    {
+      "name": "ielts-7options",
+      "source": {
+        "source": "local",
+        "path": "./"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Education"
+    }
+  ]
+}
